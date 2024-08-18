@@ -1,5 +1,5 @@
 import pygame
-import csv
+import json
 
 class Actor(pygame.sprite.Sprite):
     def __init__(self, image, x, y):
@@ -13,14 +13,12 @@ class Actor(pygame.sprite.Sprite):
 class Level1:
     def __init__(self):
         self.GRID_SIZE = 50
-        self.WIDTH, self.HEIGHT = 800, 600  # Ajustar según el tamaño de tu mapa
+        self.WIDTH, self.HEIGHT = 800, 600
         self.GUARD_MOVE_INTERVAL = 500  # Tiempo en milisegundos entre movimientos de los guardias
 
-        # Cargar el mapa desde un archivo CSV
-        self.map_data = self.load_csv_map('levels/level1.csv')
-        
-        # Cargar imágenes del mapa
-        self.tile_images = self.load_tileset()
+        # Cargar el archivo .tmj como JSON
+        with open('levels/level1.tmj') as f:
+            self.map_data = json.load(f)
 
         # Cargar imágenes del knight, los guardias y las llaves
         self.knight_image = pygame.image.load('images/player.png')
@@ -33,50 +31,60 @@ class Level1:
         # Tiempo para mover guardias
         self.last_guard_move_time = pygame.time.get_ticks()
 
-    def load_tileset(self):
-        # Cargar las imágenes de los tiles del mapa
-        tileset = {
-            0: pygame.image.load('images/floor1.png'),
-            1: pygame.image.load('images/floor2.png'),
-            2: pygame.image.load('images/door.png'),
-            3: pygame.image.load('images/wall.png'),
-            # Añadir más tiles según sea necesario
-        }
-        return tileset
-
-    def load_csv_map(self, filename):
-        # Cargar el archivo CSV y convertirlo a una lista de listas de enteros
-        with open(filename, newline='') as csvfile:
-            reader = csv.reader(csvfile)
-            map_data = [list(map(int, row)) for row in reader]
-        return map_data
-
     def setup_game(self):
-        # Crear y posicionar los personajes y objetos del nivel
-        self.knight = Actor(self.knight_image, 6 * self.GRID_SIZE, 6 * self.GRID_SIZE)
-        self.keys_to_collect = [Actor(self.key_image, 5 * self.GRID_SIZE, 3 * self.GRID_SIZE)]
-        
-        # Definir las rutas de los guardias (movimiento circular)
-        self.guards = [
-            {'actor': Actor(self.guard_image, 3 * self.GRID_SIZE, 5 * self.GRID_SIZE),
-             'route': [(3, 5), (4, 5), (4, 6), (3, 6)], 'route_index': 0},
-            {'actor': Actor(self.guard_image, 7 * self.GRID_SIZE, 9 * self.GRID_SIZE),
-             'route': [(7, 9), (8, 9), (8, 10), (7, 10)], 'route_index': 0}
-        ]
-        
+        self.knight = None
+        self.keys_to_collect = []
+        self.guards = []
+
+        # Configurar los objetos desde la capa de objetos
+        for layer in self.map_data['layers']:
+            if layer['type'] == 'objectgroup':
+                for obj in layer['objects']:
+                    # Convertir las coordenadas en píxeles a coordenadas de cuadrícula
+                    grid_x = int(obj['x'] // self.GRID_SIZE)
+                    grid_y = int(obj['y'] // self.GRID_SIZE)
+
+                    if obj.get('name') == "Knight":
+                        self.knight = Actor(self.knight_image, grid_x * self.GRID_SIZE, grid_y * self.GRID_SIZE)
+                    elif obj.get('name') == "Key":
+                        self.keys_to_collect.append(Actor(self.key_image, grid_x * self.GRID_SIZE, grid_y * self.GRID_SIZE))
+                    elif obj.get('name') == "Guard":
+                        guard = Actor(self.guard_image, grid_x * self.GRID_SIZE, grid_y * self.GRID_SIZE)
+                        # Los guardias se moverán horizontalmente de ida y vuelta
+                        route = [(grid_x + i, grid_y) for i in range(-2, 3)]  # Se moverán entre 5 casillas horizontalmente
+                        self.guards.append({'actor': guard, 'route': route, 'route_index': 0, 'direction': 1})
+
         self.game_over = False
         self.knight_won = False
 
     def draw_map(self, screen):
-        # Dibujar el mapa en la pantalla
-        for y, row in enumerate(self.map_data):
-            for x, tile_id in enumerate(row):
-                tile_image = self.tile_images.get(tile_id)
-                if tile_image:
-                    screen.blit(tile_image, (x * self.GRID_SIZE, y * self.GRID_SIZE))
+        for layer in self.map_data['layers']:
+            if layer['type'] == 'tilelayer':
+                width = layer['width']
+                data = layer['data']
+
+                for index, tile_id in enumerate(data):
+                    if tile_id != 0:  # Ignorar tiles vacíos
+                        x = (index % width) * self.GRID_SIZE
+                        y = (index // width) * self.GRID_SIZE
+                        tile_image = self.get_tile_image(tile_id)
+                        if tile_image:
+                            screen.blit(tile_image, (x, y))
+
+    def get_tile_image(self, tile_id):
+        # Asignar imágenes a los IDs de los tiles según su orden en el archivo .tmj
+        tileset = {
+            3: pygame.image.load('images/floor1.png'),
+            2: pygame.image.load('images/floor2.png'),
+            1: pygame.image.load('images/door.png'),
+            4: pygame.image.load('images/wall.png'),
+            7: pygame.image.load('images/crack1.png'),
+            8: pygame.image.load('images/crack2.png'),
+            # Añadir más tiles según sea necesario
+        }
+        return tileset.get(tile_id)
 
     def draw_actors(self, screen):
-        # Dibujar el knight, las llaves y los guardias
         self.knight.draw(screen)
         for key in self.keys_to_collect:
             key.draw(screen)
@@ -91,11 +99,8 @@ class Level1:
         screen.blit(text, text_rect)
 
     def draw(self, screen):
-        # Dibujar el mapa y los actores
         self.draw_map(screen)
         self.draw_actors(screen)
-        
-        # Dibujar el mensaje de game over si el juego ha terminado
         if self.game_over:
             self.draw_game_over(screen)
 
@@ -109,34 +114,43 @@ class Level1:
                 self.move_knight(1, 0)
             elif event.key == pygame.K_DOWN:
                 self.move_knight(0, 1)
+        elif self.game_over and event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+            self.restart_level()
+
+    def restart_level(self):
+        self.__init__()
 
     def can_move_to(self, x, y):
-        # Obtener la casilla del mapa en la posición del knight
-        tile_id = self.map_data[y][x]
-        
-        # El knight no puede moverse a una pared (tile_id 3)
-        if tile_id == 3:
+        # Verificar si las coordenadas están dentro del rango del mapa
+        if x < 0 or y < 0 or x >= self.map_data['layers'][0]['width'] or y >= self.map_data['layers'][0]['height']:
             return False
-        # El knight solo puede moverse a la puerta (tile_id 2) si ha recogido todas las llaves
-        if tile_id == 2 and len(self.keys_to_collect) > 0:
+
+        tile_layer = self.map_data['layers'][0]['data']
+        width = self.map_data['layers'][0]['width']
+        tile_id = tile_layer[y * width + x]
+        
+        # El knight no puede moverse a una pared (tile_id 4) ni a crack1 o crack2 (tile_id 7 y 8)
+        if tile_id in [4, 7, 8]:
+            return False
+        # El knight solo puede moverse a la puerta (tile_id 1) si ha recogido todas las llaves
+        if tile_id == 1 and len(self.keys_to_collect) > 0:
             return False
         return True
 
     def move_knight(self, dx, dy):
         if self.game_over:
             return
-        
-        # Calcular las nuevas coordenadas del knight en la cuadrícula
+
+        # Calcular nuevas coordenadas
         new_x = self.knight.rect.x // self.GRID_SIZE + dx
         new_y = self.knight.rect.y // self.GRID_SIZE + dy
-        
-        # Verificar si el knight puede moverse a la nueva posición
+
         if self.can_move_to(new_x, new_y):
             self.knight.rect.move_ip(dx * self.GRID_SIZE, dy * self.GRID_SIZE)
-        
+
         # Verificar colisiones con llaves
         for key in self.keys_to_collect[:]:
-            if self.knight.rect.colliderect(key.rect):
+            if self.knight.rect.topleft == key.rect.topleft:  # Verifica si están en la misma casilla
                 self.keys_to_collect.remove(key)
 
         # Verificar colisiones con guardias
@@ -148,17 +162,19 @@ class Level1:
             self.knight_won = True
 
     def move_guard(self, guard):
-        # Mover el guardia a la siguiente posición en su ruta
-        next_index = (guard['route_index'] + 1) % len(guard['route'])
+        next_index = guard['route_index'] + guard['direction']
+
+        # Cambiar la dirección si el guardia llega al final o al principio de la ruta
+        if next_index >= len(guard['route']) or next_index < 0:
+            guard['direction'] *= -1
+            next_index = guard['route_index'] + guard['direction']
+
         next_x, next_y = guard['route'][next_index]
         guard['actor'].rect.topleft = (next_x * self.GRID_SIZE, next_y * self.GRID_SIZE)
         guard['route_index'] = next_index
-        
-        # Verificar colisiones con el knight
         self.check_guard_collision()
 
     def move_guards(self):
-        # Mover guardias en intervalos de tiempo
         current_time = pygame.time.get_ticks()
         if (current_time - self.last_guard_move_time) > self.GUARD_MOVE_INTERVAL:
             for guard in self.guards:
@@ -167,17 +183,18 @@ class Level1:
 
     def check_guard_collision(self):
         for guard in self.guards:
-            if self.knight.rect.colliderect(guard['actor'].rect):
+            if self.knight.rect.topleft == guard['actor'].rect.topleft:  # Verifica si están en la misma casilla
                 self.game_over = True
                 self.knight_won = False
 
     def update(self):
         if not self.game_over:
-            self.move_guards()  # Mover los guardias en cada actualización
+            self.move_guards()
 
     def is_completed(self):
-        # Determinar si el nivel ha sido completado (por ejemplo, si se recogieron todas las llaves y el knight llegó a la puerta)
         knight_x = self.knight.rect.x // self.GRID_SIZE
         knight_y = self.knight.rect.y // self.GRID_SIZE
-        # Si el knight está en la puerta (tile_id 2) y ha recogido todas las llaves, el nivel está completado
-        return self.map_data[knight_y][knight_x] == 2 and len(self.keys_to_collect) == 0 and not self.game_over
+        tile_layer = self.map_data['layers'][0]['data']
+        width = self.map_data['layers'][0]['width']
+        tile_id = tile_layer[knight_y * width + knight_x]
+        return tile_id == 1 and len(self.keys_to_collect) == 0 and not self.game_over
