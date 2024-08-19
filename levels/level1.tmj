@@ -134,6 +134,11 @@
          "firstgid":7,
          "source":"crack-floor.tsx"
         },
+        }, 
+        {
+         "firstgid":7,
+         "source":"crack-floor.tsx"
+        }, 
         {
          "firstgid":9,
          "source":"characters.tsx"

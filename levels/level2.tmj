@@ -158,6 +158,11 @@
          "firstgid":7,
          "source":"..\/OneDrive\/Documents\/pygame-project\/levels\/crack-floor.tsx"
         },
+
+        {
+         "firstgid":7,
+         "source":"..\/OneDrive\/Documents\/pygame-project\/levels\/crack-floor.tsx"
+        }, 
         {
          "firstgid":9,
          "source":"..\/OneDrive\/Documents\/pygame-project\/levels\/characters.tsx"

@@ -31,7 +31,7 @@ class Level2:
         self.knight = None
         self.keys_to_collect = []
         self.guards = []
-
+        
         for layer in self.map_data['layers']:
             if layer['type'] == 'objectgroup':
                 for obj in layer['objects']:

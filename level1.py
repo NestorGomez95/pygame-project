@@ -1,7 +1,6 @@
 import pygame
 import json
 
-
 class Actor(pygame.sprite.Sprite):
     def __init__(self, image, x, y):
         super().__init__()
@@ -56,6 +55,7 @@ class Level1:
                         # Los guardias se moverán horizontalmente de ida y vuelta
                         route = [(grid_x + i, grid_y) for i in
                                  range(-2, 3)]  # Se moverán entre 5 casillas horizontalmente
+                        self.keys_to_collect.append(Actor(self.key_image, 
                         self.guards.append({'actor': guard, 'route': route, 'route_index': 0, 'direction': 1})
 
         self.game_over = False
@@ -132,7 +132,7 @@ class Level1:
         tile_layer = self.map_data['layers'][0]['data']
         width = self.map_data['layers'][0]['width']
         tile_id = tile_layer[y * width + x]
-
+                                                       
         # El knight no puede moverse a una pared (tile_id 4) ni a crack1 o crack2 (tile_id 7 y 8)
         if tile_id in [4, 7, 8]:
             return False

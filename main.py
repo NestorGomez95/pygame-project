@@ -15,6 +15,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
 
 
+
 levels = [Level1(), Level2(), Level3(), Level4()]
 level_index = 0
 current_level = levels[level_index]
@@ -37,6 +38,7 @@ while running:
         else:
             print("Game completed. ¡Congratulations!")
             running = False
+
     pygame.display.flip()
     clock.tick(FPS)
 
