@@ -3,8 +3,8 @@ import json
 
 
 class Actor(pygame.sprite.Sprite):
-    def _init_(self, image, x, y):
-        super()._init_()
+    def __init__(self, image, x, y):
+        super().__init__()
         self.image = image
         self.rect = self.image.get_rect(topleft=(x, y))
 
@@ -13,7 +13,7 @@ class Actor(pygame.sprite.Sprite):
 
 
 class Level1:
-    def _init_(self):
+    def __init__(self):
         self.GRID_SIZE = 50
         self.WIDTH, self.HEIGHT = 800, 600
         self.GUARD_MOVE_INTERVAL = 500  # Tiempo en milisegundos entre movimientos de los guardias
@@ -122,7 +122,7 @@ class Level1:
             self.restart_level()
 
     def restart_level(self):
-        self._init_()
+        self.__init__()
 
     def can_move_to(self, x, y):
         # Verificar si las coordenadas están dentro del rango del mapa
