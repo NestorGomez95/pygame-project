@@ -1,6 +1,27 @@
 import pygame
 import random
 
+
+try:
+    font = pygame.font.Font(None, 74)
+    screen_middle = (self.WIDTH // 2, self.HEIGHT // 2)
+    game_over_text = font.render("GAME OVER", True, (0, 255, 255))
+    message = "You won!" if self.knight_won else "You lost!"
+    text = font.render(message, True, (255, 255, 255))
+    text_rect = game_over_text.get_rect(center=screen_middle)
+    screen.blit(text, text_rect)
+    if self.knight_won:
+        won_text = font.render("You won!", True, (0, 255, 0))
+    else:
+        won_text = font.render("You lost!", True, (255, 0, 0))
+    text_rect = won_text.get_rect(midtop=screen_middle)
+    screen.blit(won_text, text_rect)
+    space_text = font.render("Press SPACE to play again", True, (0, 255, 255))
+    space_rect = space_text.get_rect(midtop=(self.WIDTH / 2, self.HEIGHT / 2 + self.GRID_SIZE))
+    screen.blit(space_text, space_rect)
+except pygame.error as e:
+    print(f"Error loading tileset: {e}")
+    return {}
 class Actor(pygame.sprite.Sprite):
     def __init__(self, image, *args, **kwargs):
         super().__init__(*args, **kwargs)

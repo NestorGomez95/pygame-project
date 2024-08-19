@@ -12,14 +12,14 @@ class Actor(pygame.sprite.Sprite):
         surface.blit(self.image, self.rect.topleft)
 
 
-class Level3:
+class Level4:
     def __init__(self):
         self.GRID_SIZE = 50
         self.WIDTH, self.HEIGHT = 800, 600  # Adjust according to your map size
         self.GUARD_MOVE_INTERVAL = 50  # Time in milliseconds between guard moves
 
         # Load the map data from the JSON file
-        with open('levels/level3/level3.tmj') as f:
+        with open('levels/level4.tmj') as f:
             self.map_data = json.load(f)
 
         # Load actor images
@@ -39,12 +39,14 @@ class Level3:
         self.guards = []
 
         guard_routes = {
-            1: [(250, 100), (250, 50), (250, 100), (250, 150), (250, 100)],  # ID 1
-            2: [(200, 450), (200, 400), (200, 350), (250, 350), (250, 400)],  # ID 2
-            3: [(500, 350), (450, 350), (450, 400), (500, 400), (500, 350)],  # ID 3
-            4: [(450, 147), (450, 150), (500, 150), (500, 150), (500, 100)],  # ID 4
+            7: [(151, 500), (151, 451), (151, 400), (151, 451), (151, 501)],  # avec ID 7
+            8: [(250, 349), (250, 299), (301, 299), (250, 299), (250, 349)],  # avec ID 8
+            9: [(350, 100), (350, 150), (400, 150), (350, 150), (350, 100)],  # avec ID 9
+            10: [(650, 300), (600, 250), (600, 300), (600, 250), (650, 300)],  # avec ID 10
+            11: [(600, 450), (650, 450), (700, 450), (650, 450), (600, 450)],  # avec ID 11
 
         }
+
         # Configurar los objetos desde la capa de objetos
         for layer in self.map_data['layers']:
             if layer['type'] == 'objectgroup':
@@ -60,7 +62,9 @@ class Level3:
                             Actor(self.key_image, grid_x * self.GRID_SIZE, grid_y * self.GRID_SIZE))
                     elif obj.get('name') == "Guard":
                         guard = Actor(self.guard_image, grid_x * self.GRID_SIZE, grid_y * self.GRID_SIZE)
-                        guard_id = obj.get('id')
+                        guard_id = obj.get('id')  # Obtener el ID del guardia
+
+                        # Asignar la ruta de movimiento según el ID del guardia
                         route = guard_routes.get(guard_id, [(grid_x, grid_y)])  # Ruta predeterminada si no se encuentra
 
                         self.guards.append({'actor': guard, 'route': route, 'route_index': 0, 'direction': 1})
@@ -164,14 +168,19 @@ class Level3:
             self.knight_won = True
 
     def move_guard(self, guard):
+        # Determina el próximo índice en la ruta del guardia
         next_index = (guard['route_index'] + 1) % len(guard['route'])
         next_x, next_y = guard['route'][next_index]
-        guard['actor'].rect.topleft = (next_x, next_y)
+
+        # Actualiza la posición del guardia
+        guard['actor'].rect.topleft = (next_x, next_y)  # Ya está en coordenadas de píxel
         guard['route_index'] = next_index
 
+        # Verifica si el guardia colisiona con el jugador
         self.check_guard_collision()
 
     def move_guards(self):
+        # Controla el temporizador de movimiento de los guardias
         current_time = pygame.time.get_ticks()
         if (current_time - self.last_guard_move_time) > self.GUARD_MOVE_INTERVAL:
             for guard in self.guards:
