@@ -31,8 +31,7 @@ class Level2:
         self.knight = None
         self.keys_to_collect = []
         self.guards = []
-
-        # Configurar los objetos desde la capa de objetos
+        
         for layer in self.map_data['layers']:
             if layer['type'] == 'objectgroup':
                 for obj in layer['objects']:
@@ -83,7 +82,6 @@ class Level2:
             4: pygame.image.load('images/wall.png'),
             7: pygame.image.load('images/crack1.png'),
             8: pygame.image.load('images/crack2.png'),
-            # Añadir más tiles según sea necesario
         }
         return tileset.get(tile_id)
 
