@@ -60,7 +60,7 @@ while running:
             pygame.mixer.music.set_volume(0.5)  
             pygame.mixer.music.play(loops=-1)
         else:
-            print("Juego completado. ¡Felicidades!")
+            print("Game pass. ¡Congratulations!")
             running = False  
 
     pygame.display.flip()

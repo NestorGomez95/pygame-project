@@ -16,7 +16,7 @@ class Level4:
     def __init__(self):
         self.GRID_SIZE = 50
         self.WIDTH, self.HEIGHT = 800, 600  # Adjust according to your map size
-        self.GUARD_MOVE_INTERVAL = 50  # Time in milliseconds between guard moves
+        self.GUARD_MOVE_INTERVAL = 50  
 
         # Load the map data from the JSON file
         with open('levels/level4.tmj') as f:
@@ -47,11 +47,11 @@ class Level4:
 
         }
 
-        # Configurar los objetos desde la capa de objetos
+        
         for layer in self.map_data['layers']:
             if layer['type'] == 'objectgroup':
                 for obj in layer['objects']:
-                    # Convertir las coordenadas en píxeles a coordenadas de cuadrícula
+                    
                     grid_x = int(obj['x'] // self.GRID_SIZE)
                     grid_y = int(obj['y'] // self.GRID_SIZE)
 
@@ -62,10 +62,10 @@ class Level4:
                             Actor(self.key_image, grid_x * self.GRID_SIZE, grid_y * self.GRID_SIZE))
                     elif obj.get('name') == "Guard":
                         guard = Actor(self.guard_image, grid_x * self.GRID_SIZE, grid_y * self.GRID_SIZE)
-                        guard_id = obj.get('id')  # Obtener el ID del guardia
+                        guard_id = obj.get('id')  
 
-                        # Asignar la ruta de movimiento según el ID del guardia
-                        route = guard_routes.get(guard_id, [(grid_x, grid_y)])  # Ruta predeterminada si no se encuentra
+                        
+                        route = guard_routes.get(guard_id, [(grid_x, grid_y)])  
 
                         self.guards.append({'actor': guard, 'route': route, 'route_index': 0, 'direction': 1})
 
@@ -79,7 +79,7 @@ class Level4:
                 data = layer['data']
 
                 for index, tile_id in enumerate(data):
-                    if tile_id != 0:  # Ignorar tiles vacíos
+                    if tile_id != 0:  
                         x = (index % width) * self.GRID_SIZE
                         y = (index // width) * self.GRID_SIZE
                         tile_image = self.get_tile_image(tile_id)
@@ -87,7 +87,7 @@ class Level4:
                             screen.blit(tile_image, (x, y))
 
     def get_tile_image(self, tile_id):
-        # Load tile images based on tile IDs
+        
         tileset = {
             2: pygame.image.load('images/floor1.png'),
             3: pygame.image.load('images/floor2.png'),
@@ -96,7 +96,7 @@ class Level4:
             5: pygame.image.load('images/crack1.png'),
             8: pygame.image.load('images/crack2.png'),
             7: pygame.image.load('images/crack1.png'),
-            # Add more tiles as necessary
+            
         }
         return tileset.get(tile_id)
 
@@ -168,19 +168,19 @@ class Level4:
             self.knight_won = True
 
     def move_guard(self, guard):
-        # Determina el próximo índice en la ruta del guardia
+        
         next_index = (guard['route_index'] + 1) % len(guard['route'])
         next_x, next_y = guard['route'][next_index]
 
-        # Actualiza la posición del guardia
-        guard['actor'].rect.topleft = (next_x, next_y)  # Ya está en coordenadas de píxel
+    
+        guard['actor'].rect.topleft = (next_x, next_y)  
         guard['route_index'] = next_index
 
-        # Verifica si el guardia colisiona con el jugador
+        
         self.check_guard_collision()
 
     def move_guards(self):
-        # Controla el temporizador de movimiento de los guardias
+        
         current_time = pygame.time.get_ticks()
         if (current_time - self.last_guard_move_time) > self.GUARD_MOVE_INTERVAL:
             for guard in self.guards:

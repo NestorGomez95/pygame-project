@@ -45,11 +45,11 @@ class Level3:
             4: [(450, 147), (450, 150), (500, 150), (500, 150), (500, 100)],  # ID 4
 
         }
-        # Configurar los objetos desde la capa de objetos
+        
         for layer in self.map_data['layers']:
             if layer['type'] == 'objectgroup':
                 for obj in layer['objects']:
-                    # Convertir las coordenadas en píxeles a coordenadas de cuadrícula
+                    
                     grid_x = int(obj['x'] // self.GRID_SIZE)
                     grid_y = int(obj['y'] // self.GRID_SIZE)
 
@@ -61,7 +61,7 @@ class Level3:
                     elif obj.get('name') == "Guard":
                         guard = Actor(self.guard_image, grid_x * self.GRID_SIZE, grid_y * self.GRID_SIZE)
                         guard_id = obj.get('id')
-                        route = guard_routes.get(guard_id, [(grid_x, grid_y)])  # Ruta predeterminada si no se encuentra
+                        route = guard_routes.get(guard_id, [(grid_x, grid_y)])  
 
                         self.guards.append({'actor': guard, 'route': route, 'route_index': 0, 'direction': 1})
 
@@ -75,7 +75,7 @@ class Level3:
                 data = layer['data']
 
                 for index, tile_id in enumerate(data):
-                    if tile_id != 0:  # Ignorar tiles vacíos
+                    if tile_id != 0:  
                         x = (index % width) * self.GRID_SIZE
                         y = (index // width) * self.GRID_SIZE
                         tile_image = self.get_tile_image(tile_id)
